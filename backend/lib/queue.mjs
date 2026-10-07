@@ -46,6 +46,7 @@ import { probeWrapperPorts } from './wrapperHealth.mjs'
 import { resolveMetadataName } from './metadataLanguage.mjs'
 import { getOriginalAlbumMeta, getOriginalPlaylistMeta } from './originalMetadataCache.mjs'
 import { wakeWrapper } from './wrapperLogin.mjs'
+import { listAudioRel, runPostDownloadHook } from './postDownloadHook.mjs'
 
 const MUSIC_ROOT = process.env.AMDL_MUSIC_PATH || '/music'
 const STAGING_ROOT_OUTSIDE = '/tmp/alacarte-staging'
@@ -1604,6 +1605,7 @@ async function runJob(job) {
       })
       await appendHistory(job)
       await creditImportedFiles(importedTracks)
+      await runPostDownloadHook(job, importedTracks)
       triggerNavidromeScan().catch(console.error)
       return
     }
@@ -1654,6 +1656,7 @@ async function runJob(job) {
     const convention = settings.namingConvention || 'apple'
 
     let finalDir
+    let hookFiles = []
     if (isSong) {
       // Songs import straight into their parent album folder so every
       // download lands in the same Artist/Album/Track structure with the
@@ -1697,6 +1700,7 @@ async function runJob(job) {
         }
       }
       await copyFolderArtIfAny(albumPath, finalDir)
+      hookFiles = audioFiles.map((fn) => path.join(finalDir, fn))
       const songExtra = {}
       if (job.originalTrackTitle) songExtra.ORIGINAL_TITLE = job.originalTrackTitle
       if (job.originalAlbumTitle) songExtra.ORIGINAL_ALBUM = job.originalAlbumTitle
@@ -1737,7 +1741,9 @@ async function runJob(job) {
         message: 'Moving into library',
         currentTrack: null,
       })
+      const hookRel = await listAudioRel(albumPath).catch(() => [])
       await mergeMove(albumPath, finalDir)
+      hookFiles = hookRel.map((r) => path.join(finalDir, r))
       await writeVersionMarker(finalDir, job.quality)
     }
 
@@ -1764,6 +1770,7 @@ async function runJob(job) {
     invalidateLibraryCache()
     await appendHistory(job)
     await creditImportedFiles([finalDir])
+    await runPostDownloadHook(job, hookFiles)
     triggerNavidromeScan().catch(console.error)
   } catch (err) {
     if (err.name === 'AbortError') {
@@ -2046,8 +2053,11 @@ async function runPartialAlbumFill({
     message: 'Moving into library',
     currentTrack: null,
   })
+  const hookFiles = []
   for (const albumPath of trackAlbumPaths) {
+    const hookRel = await listAudioRel(albumPath).catch(() => [])
     await mergeMove(albumPath, finalDir)
+    for (const r of hookRel) hookFiles.push(path.join(finalDir, r))
   }
 
   await extractFolderArt(finalDir, { size: 1000 }).catch(() => null)
@@ -2071,6 +2081,7 @@ async function runPartialAlbumFill({
   invalidateLibraryCache()
   await appendHistory(job)
   await creditImportedFiles(trackAlbumPaths)
+  await runPostDownloadHook(job, hookFiles)
   triggerNavidromeScan().catch(console.error)
 }
 
@@ -2103,6 +2114,7 @@ async function runLibraryPlaylistFill({
   })
 
   const importedPaths = []
+  const newlyImported = []
 
   for (let i = 0; i < tracks.length; i += 1) {
     throwIfCancelled(job)
@@ -2198,7 +2210,10 @@ async function runLibraryPlaylistFill({
       }
     }
     endLibraryImport(job)
-    for (const p of importedHere) importedPaths.push(p)
+    for (const p of importedHere) {
+      importedPaths.push(p)
+      newlyImported.push(p)
+    }
 
     progressState.downloadDone = i + 1
     progressState.downloadPartial = 0
@@ -2242,6 +2257,7 @@ async function runLibraryPlaylistFill({
   invalidateLibraryCache()
   await appendHistory(job)
   await creditImportedFiles(importedPaths)
+  await runPostDownloadHook(job, newlyImported)
   triggerNavidromeScan().catch(console.error)
 }
 

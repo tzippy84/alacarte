@@ -67,10 +67,15 @@ services:
       - AMDL_SECRET_KEY=${AMDL_SECRET_KEY:-}
       - AUTH_DISABLED=${AUTH_DISABLED:-false}
       - TRUST_PROXY=${TRUST_PROXY:-loopback}
+      - POST_EXPORT_ENABLED=${POST_EXPORT_ENABLED:-false}
+      - POST_EXPORT_DIR=/export
     volumes:
       - ${ALACARTE_DATA_PATH:-./data}/web:/config
       - ${ALACARTE_DATA_PATH:-./data}/supervisor:/supervisor-secret:ro
       - ${MUSIC_PATH:?Set MUSIC_PATH in .env}:/music
+      # Export folder for the post-download hook (only used when
+      # POST_EXPORT_ENABLED=true). Must be writable and on one filesystem.
+      - ${EXPORT_PATH:-./export}:/export
     # Default (WEB_BIND unset/empty) publishes on all interfaces — same as
     # docker's default. Set WEB_BIND=127.0.0.1 in .env to restrict the UI to
     # the host machine only when fronting with a reverse proxy.

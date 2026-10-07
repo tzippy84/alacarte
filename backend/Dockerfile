@@ -16,6 +16,7 @@ COPY backend/server.mjs ./
 COPY backend/routes ./routes
 COPY backend/lib ./lib
 COPY backend/scripts ./scripts
+COPY backend/hooks ./hooks
 COPY --from=frontend-build /app/backend/public ./public
 
 # Source stage for Node 22 runtime binaries
@@ -38,6 +39,7 @@ RUN apt-get update && \
       musl \
       tini \
       curl \
+      atomicparsley \
       && rm -rf /var/lib/apt/lists/*
 
 # Inject Node 22 runtime from the official Node image.
@@ -53,6 +55,7 @@ COPY --from=node-build /app /app
 # Build-time sanity checks so regressions are caught early.
 RUN MP4Box -version 2>&1 | grep -q 'GPAC version' || (echo 'MP4Box runtime check failed' && exit 1)
 RUN command -v apple-music-dl >/dev/null
+RUN command -v AtomicParsley >/dev/null
 # The binary must actually execve — a musl-linked build on this glibc image
 # fails here with ENOENT, which would break every download job at runtime.
 RUN rc=0; apple-music-dl --help >/dev/null 2>&1 || rc=$?; if [ "$rc" = "127" ]; then echo 'apple-music-dl cannot be executed (wrong libc / missing loader)' >&2; exit 1; fi
