@@ -50,6 +50,7 @@
     "cardAutoDownloads": "自動下載",
     "cardAccount": "帳號",
     "storefront": "商店地區",
+    "autoStorefront": "自動偵測商店地區",
     "contentRating": "內容分級",
     "preferExplicit": "偏好完整版",
     "preferClean": "偏好淨化版",
@@ -234,7 +235,24 @@
     "timeSeconds": "{{count}} 秒",
     "appleLimitLabel": "限制 Apple Music 請求",
     "cardIntegrations": "整合",
-    "appleLimitIntegrationLabel": "同時限制 octo-fiesta 查詢"
+    "appleLimitIntegrationLabel": "同時限制 octo-fiesta 查詢",
+    "appearance": "外觀",
+    "season": "季節",
+    "seasonFollow": "跟隨節氣",
+    "seasonNext": "現在是{{season}} · {{date}}起為{{next}}",
+    "theme": "主題",
+    "seasons": {
+      "spring": "春",
+      "summer": "夏",
+      "autumn": "秋",
+      "winter": "冬"
+    },
+    "appearances": {
+      "system": "跟隨系統",
+      "day": "白天",
+      "night": "夜間",
+      "midnight": "午夜"
+    }
   },
   "album": {
     "loadError": "載入失敗",
@@ -598,7 +616,6 @@
     "openActivity": "開啟活動記錄",
     "dismiss": "關閉",
     "title": "關注",
-    "subtitle": "關注藝人以追蹤新發行內容，關注播放清單則會在你新增曲目時自動下載。",
     "sectionAriaLabel": "關注區段",
     "tabArtists": "藝人",
     "tabPlaylists": "播放清單",
@@ -705,7 +722,6 @@
   },
   "imports": {
     "title": "匯入",
-    "subtitle": "加入含 Apple Music 連結的檔案，每行一個連結。alacarte 會保存檔案副本，重新同步時會重放已儲存的連結，之後對原檔的修改需要重新加入。",
     "add": "加入檔案",
     "adding": "正在加入…",
     "resync": "重新同步",

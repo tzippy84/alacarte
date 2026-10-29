@@ -50,6 +50,7 @@
     "cardAutoDownloads": "Auto-downloads",
     "cardAccount": "Account",
     "storefront": "Storefront",
+    "autoStorefront": "Auto-detect storefront",
     "contentRating": "Content rating",
     "preferExplicit": "Prefer explicit",
     "preferClean": "Prefer clean",
@@ -235,7 +236,24 @@
     "timeSeconds": "{{count}} s",
     "appleLimitLabel": "Limit Apple Music requests",
     "cardIntegrations": "Integrations",
-    "appleLimitIntegrationLabel": "Also limit octo-fiesta lookups"
+    "appleLimitIntegrationLabel": "Also limit octo-fiesta lookups",
+    "appearance": "Appearance",
+    "season": "Season",
+    "seasonFollow": "Follow the calendar",
+    "seasonNext": "{{season}} now · {{next}} from {{date}}",
+    "theme": "Theme",
+    "seasons": {
+      "spring": "Spring",
+      "summer": "Summer",
+      "autumn": "Autumn",
+      "winter": "Winter"
+    },
+    "appearances": {
+      "system": "System",
+      "day": "Day",
+      "night": "Night",
+      "midnight": "Midnight"
+    }
   },
   "album": {
     "loadError": "Failed to load",
@@ -599,7 +617,6 @@
     "openActivity": "Open activity",
     "dismiss": "Dismiss",
     "title": "Following",
-    "subtitle": "Follow artists to watch for new releases and playlists to auto-download tracks you add to them.",
     "sectionAriaLabel": "Following section",
     "tabArtists": "Artists",
     "tabPlaylists": "Playlists",
@@ -706,7 +723,6 @@
   },
   "imports": {
     "title": "Imports",
-    "subtitle": "Add a file with Apple Music links, one link per line. alacarte stores a copy, so resync replays the saved links, not later edits to the file.",
     "add": "Add files",
     "adding": "Adding…",
     "resync": "Resync",

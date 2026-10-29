@@ -50,6 +50,7 @@
     "cardAutoDownloads": "自动下载",
     "cardAccount": "账号",
     "storefront": "商店",
+    "autoStorefront": "自动检测商店",
     "contentRating": "内容分级",
     "preferExplicit": "优先选择显式版本",
     "preferClean": "优先选择纯净版",
@@ -234,7 +235,24 @@
     "timeSeconds": "{{count}} 秒",
     "appleLimitLabel": "限制 Apple Music 请求",
     "cardIntegrations": "集成",
-    "appleLimitIntegrationLabel": "同时限制 octo-fiesta 查询"
+    "appleLimitIntegrationLabel": "同时限制 octo-fiesta 查询",
+    "appearance": "外观",
+    "season": "季节",
+    "seasonFollow": "跟随节气",
+    "seasonNext": "现在是{{season}} · {{date}}起为{{next}}",
+    "theme": "主题",
+    "seasons": {
+      "spring": "春",
+      "summer": "夏",
+      "autumn": "秋",
+      "winter": "冬"
+    },
+    "appearances": {
+      "system": "跟随系统",
+      "day": "白天",
+      "night": "夜间",
+      "midnight": "午夜"
+    }
   },
   "album": {
     "loadError": "加载失败",
@@ -598,7 +616,6 @@
     "openActivity": "打开活动记录",
     "dismiss": "关闭",
     "title": "关注",
-    "subtitle": "关注艺人以监视其新发行内容，关注播放列表以自动下载你添加到其中的曲目。",
     "sectionAriaLabel": "关注分区",
     "tabArtists": "艺人",
     "tabPlaylists": "播放列表",
@@ -705,7 +722,6 @@
   },
   "imports": {
     "title": "导入",
-    "subtitle": "添加含 Apple Music 链接的文件，每行一个链接。alacarte 会保存文件副本，重新同步时重放已保存的链接，之后对原文件的修改需要重新添加。",
     "add": "添加文件",
     "adding": "正在添加…",
     "resync": "重新同步",

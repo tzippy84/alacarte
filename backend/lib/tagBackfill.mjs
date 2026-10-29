@@ -228,7 +228,7 @@ async function lookupAlbum(need, { deps, settings }) {
     if (!album?.id) return null
     const full = await callApple(() => deps.getAlbum({ storefront, id: album.id, language }))
     const data = full?.data?.[0]
-    const tracks = (data?.relationships?.tracks?.data || []).map((t) => ({
+    const tracks = (data?.relationships?.tracks?.data || []).filter((t) => t?.type !== 'music-videos').map((t) => ({
         name: t.attributes?.name,
         isrc: t.attributes?.isrc,
         trackNumber: t.attributes?.trackNumber,

@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Route, Routes, useLocation, Link } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { ArrowLeft } from 'iconoir-react'
+import { AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 
 import { HomePage } from './pages/Home'
@@ -16,12 +17,13 @@ import { FollowingPage } from './pages/Following'
 import { ImportsPage } from './pages/Imports'
 import { CloudLibraryPage } from './pages/CloudLibrary'
 import { TopBar } from './components/TopBar'
-import { HealthPill, getHealthPillTarget, getHealthPillAriaLabel } from './components/HealthPill'
 import { PageWrapper } from './components/PageWrapper'
 import { AuthScreen } from './components/AuthScreen'
 import { useHealth } from './hooks/useHealth'
 import { useAppSettings } from './hooks/useAppSettings'
 import { applyUiLanguage } from './i18n'
+import { setLook } from './lib/seasons'
+import { Dots } from './components/Dots'
 import { api, type AuthState, setUnauthorizedHandler } from './api/client'
 
 type AuthLimits = {
@@ -99,21 +101,17 @@ export default function App() {
 
   if (gate.status === 'loading') {
     return (
-      <div className="min-h-dvh w-full bg-[var(--bg)] flex items-center justify-center px-4">
+      <div className="fixed inset-0 flex items-center justify-center px-4">
         {bootError ? (
-          <div className="w-full max-w-md rounded-app border border-white/10 bg-white/[0.03] p-5 text-center space-y-3">
-            <p className="text-sm text-rose-300">{t('app.couldNotLoadAuthState')}</p>
-            <p className="text-xs text-white/60 break-words">{bootError}</p>
-            <button
-              type="button"
-              onClick={refresh}
-              className="inline-flex min-h-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] px-4 text-sm text-white/85 hover:border-[rgba(var(--accent),0.3)] hover:text-[rgb(var(--accent))]"
-            >
+          <div className="w-full max-w-md p-5 text-center space-y-3">
+            <p className="text-sm font-semibold text-rose-500">{t('app.couldNotLoadAuthState')}</p>
+            <p className="text-xs text-quiet break-words">{bootError}</p>
+            <button type="button" onClick={refresh} className="pill small quiet">
               {t('app.retry')}
             </button>
           </div>
         ) : (
-          <div className="h-8 w-8 rounded-full border-2 border-white/20 border-t-white/70 animate-spin" />
+          <Dots />
         )}
       </div>
     )
@@ -139,6 +137,7 @@ export default function App() {
 function AuthedApp() {
   const { health, loading } = useHealth()
   const location = useLocation()
+  const navigate = useNavigate()
   const settings = useAppSettings()
 
   // The UI-language setting lives in backend settings (so it follows the
@@ -149,30 +148,55 @@ function AuthedApp() {
     applyUiLanguage(settings?.uiLanguage)
   }, [settings?.uiLanguage])
 
+  // The season and appearance follow the user across browsers like the language does.
+  useEffect(() => {
+    if (settings) setLook({ season: settings.season, appearance: settings.appearance })
+  }, [settings?.season, settings?.appearance])
+
+  const detail = DETAIL.test(location.pathname)
+
+  // The bar is centred over the page's column, which a classic scrollbar narrows: half its width.
+  useEffect(() => {
+    const main = mainRef.current
+    if (!main) return
+    const measure = () =>
+      document.documentElement.style.setProperty('--scrollbar', `${main.offsetWidth - main.clientWidth}px`)
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [])
+
+  // Each page opens at its top.
+  const mainRef = useRef<HTMLElement | null>(null)
+  useEffect(() => {
+    mainRef.current?.scrollTo(0, 0)
+  }, [location.pathname])
+
   return (
-    <div className="min-h-dvh w-full flex flex-col">
+    <>
       <TopBar health={health} loading={loading} />
 
-      <AnimatePresence>
-        {location.pathname !== '/settings' && location.pathname !== '/status' && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 md:hidden pointer-events-none">
-            <motion.div
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 50, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-              className="shadow-2xl rounded-full pointer-events-auto"
-            >
-              <Link to={getHealthPillTarget(health)} aria-label={getHealthPillAriaLabel(health)} className="block transition-transform duration-[400ms] ease-smooth hover:scale-[1.03] active:scale-95 group">
-                <HealthPill health={health} loading={loading} variant="shell" />
-              </Link>
-            </motion.div>
-          </div>
+      {/* The page scrolls inside here, under the chrome, as nori's does: the document itself never scrolls,
+          so a phone's toolbars stay put and the dock never moves. The column is the top bar's width. */}
+      <main ref={mainRef} id="main" className="fixed inset-0 isolate overflow-y-auto overscroll-contain">
+        {/* The way back, as nori's desktop has it: a disc beside what the page is about, left of the column
+            where there is room (over its corner where there is not). It stays where it is while a long list
+            scrolls under it. */}
+        {detail && (
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="glyph chrome fixed left-[max(8px,calc((100%-var(--scrollbar,0px)-1040px)/2-56px))] top-[max(20px,env(safe-area-inset-top))] z-20 !h-10 !w-10 md:top-[84px]"
+            aria-label="Back"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
         )}
-      </AnimatePresence>
-
-      <main className="flex-1 min-w-0 flex flex-col">
-        <div className="flex-1 px-4 md:px-8 pb-8">
+        <div
+          className={`mx-auto w-full max-w-[calc(1040px+2*var(--gutter))] px-[var(--gutter)] pb-[calc(140px+env(safe-area-inset-bottom))] md:pb-12 ${
+            'pt-[max(20px,env(safe-area-inset-top))] md:pt-[84px]'
+          }`}
+        >
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
               <Route path="/" element={<PageWrapper><HomePage /></PageWrapper>} />
@@ -193,6 +217,10 @@ function AuthedApp() {
           </AnimatePresence>
         </div>
       </main>
-    </div>
+    </>
   )
 }
+
+/** Pages reached from another one, which offer a way back; the sections in the chrome do not. */
+const DETAIL = /^\/(album|artist|playlist|curator|label)\//
+

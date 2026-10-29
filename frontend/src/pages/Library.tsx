@@ -1,26 +1,27 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  BookAudio,
-  FileText,
-  Music2,
-  Disc3,
-  RefreshCw,
-  Trash2,
-  AlertCircle,
+  CompactDisc as BookAudio,
+  QuoteMessage as FileText,
+  MusicNote as Music2,
+  CompactDisc as Disc3,
+  Refresh as RefreshCw,
+  Trash as Trash2,
+  WarningCircle as AlertCircle,
   Search,
-  ListFilter,
-  ListOrdered,
-} from 'lucide-react'
+  Filter as ListFilter,
+  NumberedListLeft as ListOrdered,
+} from 'iconoir-react'
 import { useTranslation } from 'react-i18next'
 
 import { api, type LibraryAlbum, type LibraryPlaylist, type LibrarySingle } from '../api/client'
-import { Card } from '../components/Card'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Modal } from '../components/Modal'
 import { ResolvedMediaLink } from '../components/ResolvedMediaLink'
 import { cx } from '../lib/cx'
 import { StaggeredList } from '../components/StaggeredList'
+import { PageTitle } from '../components/PageTitle'
+import { Dots } from '../components/Dots'
 import { useLibraryPresence } from '../hooks/useLibraryPresence'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -65,30 +66,6 @@ function compareLibraryItems(
     return compareText(a.artist, b.artist) || compareText(a.name, b.name)
   }
   return compareText(a.name, b.name) || compareText(a.artist, b.artist)
-}
-
-function SkeletonCard() {
-  return (
-    <Card className="flex items-center gap-3 p-3">
-      <motion.div
-        className="h-10 w-10 rounded-lg bg-white/10"
-        animate={{ opacity: [0.4, 1, 0.4] }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <div className="flex-1 min-w-0">
-        <motion.div
-          className="h-4 bg-white/10 rounded w-2/3 mb-2"
-          animate={{ opacity: [0.4, 1, 0.4] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
-        />
-        <motion.div
-          className="h-3 bg-white/10 rounded w-1/2"
-          animate={{ opacity: [0.4, 1, 0.4] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
-        />
-      </div>
-    </Card>
-  )
 }
 
 export function LibraryPage() {
@@ -260,18 +237,24 @@ export function LibraryPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl pt-4 md:pt-6 space-y-6">
-      <header className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <div className="text-sm text-white/60">
-            {t('library.albumCount', { count: totals.albums })} ·{' '}
-            {t('library.playlistCount', { count: totals.playlists })} ·{' '}
-            {t('library.singleCount', { count: totals.singles })}
-          </div>
-          <Button onClick={() => load(true)}>
-            <RefreshCw className="h-4 w-4" /> {t('library.refresh')}
-          </Button>
-        </div>
+    <div className="flex w-full flex-col gap-[26px]">
+      <header className="flex flex-col gap-[26px]">
+        <PageTitle
+          sub={
+            <span className="caption">
+              {t('library.albumCount', { count: totals.albums })} ·{' '}
+              {t('library.playlistCount', { count: totals.playlists })} ·{' '}
+              {t('library.singleCount', { count: totals.singles })}
+            </span>
+          }
+          aside={
+            <Button onClick={() => load(true)}>
+              <RefreshCw /> {t('library.refresh')}
+            </Button>
+          }
+        >
+          {t('nav.downloads')}
+        </PageTitle>
 
         <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
           <div>
@@ -279,14 +262,14 @@ export function LibraryPage() {
               {t('library.filterLabel')}
             </label>
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-[19px] w-[19px] -translate-y-1/2 text-quiet" />
               <input
                 id="library-filter"
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={t('library.filterPlaceholder')}
-                className="h-10 w-full rounded-app border border-white/10 bg-white/[0.03] pl-9 pr-3 text-sm text-white/90 placeholder:text-white/40 transition-colors hover:border-white/20 focus:border-[rgba(var(--accent),0.45)] focus:outline-none focus:ring-2 focus:ring-[rgba(var(--accent),0.2)]"
+                className="field !pl-10 [&::-webkit-search-cancel-button]:hidden"
               />
             </div>
           </div>
@@ -296,12 +279,12 @@ export function LibraryPage() {
               {t('library.sortLabel')}
             </label>
             <div className="relative min-w-[210px]">
-              <ListFilter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
+              <ListFilter className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-quiet" />
               <select
                 id="library-sort"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as LibrarySort)}
-                className="h-10 w-full appearance-none rounded-app border border-white/10 bg-white/[0.03] pl-9 pr-9 text-sm text-white/90 transition-colors hover:border-white/20 focus:border-[rgba(var(--accent),0.45)] focus:outline-none focus:ring-2 focus:ring-[rgba(var(--accent),0.2)]"
+                className="field !pl-10 !pr-10"
               >
                 <option value="date-desc">{t('library.sortDateNewest')}</option>
                 <option value="date-asc">{t('library.sortDateOldest')}</option>
@@ -326,30 +309,27 @@ export function LibraryPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.15 } }}
-            className="flex flex-col gap-2"
+            className="flex justify-center py-16"
           >
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
+            <Dots />
           </motion.div>
         ) : (
           <motion.div
             key="content"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="space-y-6"
+            className="flex flex-col gap-[26px]"
           >
             <section>
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-white/50 mb-3 flex items-center gap-2">
-                <Disc3 className="h-4 w-4" /> {t('library.albums')}
+              <h2 className="section-title">
+                <Disc3 /> {t('library.albums')}
               </h2>
               {albums.length === 0 ? (
-                <Card className="p-6 text-sm text-white/55">{t('library.noAlbumsFound')}</Card>
+                <p className="px-2 py-2 text-[15px] text-quiet">{t('library.noAlbumsFound')}</p>
               ) : visibleAlbums.length === 0 ? (
-                <Card className="p-6 text-sm text-white/55">{t('library.noAlbumsMatch')}</Card>
+                <p className="px-2 py-2 text-[15px] text-quiet">{t('library.noAlbumsMatch')}</p>
               ) : (
-                <StaggeredList className="flex flex-col gap-2">
+                <StaggeredList className="rows [--row-text:60px]">
                   <AnimatePresence initial={false}>
                     {visibleAlbums.map((a) => (
                       <motion.div
@@ -364,34 +344,34 @@ export function LibraryPage() {
                           scale: { duration: 0.2, ease: [0.22, 1, 0.36, 1] },
                         }}
                       >
-                      <Card hover className="flex items-center gap-3 p-3">
+                      <div className="flex min-h-[60px] items-center gap-3 py-2 pl-2 pr-1 transition-colors hover:bg-[var(--hover)]">
                         <ResolvedMediaLink
                           kind="album"
                           artistId={a.artistId}
                           artistName={a.artistName}
                           albumName={a.albumName}
-                          className="h-10 w-10 rounded-lg bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"
+                          className="plate flex h-10 w-10 shrink-0 items-center justify-center rounded-cover"
                         >
-                          <BookAudio className="h-5 w-5 text-white/65" />
+                          <BookAudio className="h-5 w-5" />
                         </ResolvedMediaLink>
                         <div className="min-w-0 flex-1">
-                          <div className="text-sm font-medium truncate">
+                          <div className="truncate text-base leading-[21px]">
                             <ResolvedMediaLink
                               kind="album"
                               artistId={a.artistId}
                               artistName={a.artistName}
                               albumName={a.albumName}
-                              className="hover:text-accent transition-colors"
+                              className="hover:text-white transition-colors"
                             >
                               {a.albumName}
                             </ResolvedMediaLink>
                           </div>
-                          <div className="text-xs text-white/55 truncate">
+                          <div className="truncate text-[13px] text-quiet">
                             <ResolvedMediaLink
                               kind="artist"
                               artistId={a.artistId}
                               artistName={a.artistName}
-                              className="hover:text-accent transition-colors"
+                              className="hover:text-white transition-colors"
                             >
                               {a.artistName}
                             </ResolvedMediaLink>{' '}
@@ -401,11 +381,11 @@ export function LibraryPage() {
                               : `${t('library.tracks', { count: a.trackCount })}${a.hasLyrics ? ` · ${t('library.withLyricsCount', { count: a.lyricsCount })}` : ''}`}
                           </div>
                         </div>
-                        <Button onClick={() => removeAlbum(a)} disabled={Boolean(busy[a.id])}>
-                          <Trash2 className="h-4 w-4" />
+                        <Button variant="ghost" onClick={() => removeAlbum(a)} disabled={Boolean(busy[a.id])} className="!font-medium !text-quiet hover:!text-white">
+                          <Trash2 />
                           {busy[a.id] ? t('library.deleting') : t('library.delete')}
                         </Button>
-                      </Card>
+                      </div>
                       </motion.div>
                     ))}
                   </AnimatePresence>
@@ -414,15 +394,15 @@ export function LibraryPage() {
             </section>
 
             <section>
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-white/50 mb-3 flex items-center gap-2">
-                <ListOrdered className="h-4 w-4" /> {t('library.playlists')}
+              <h2 className="section-title">
+                <ListOrdered /> {t('library.playlists')}
               </h2>
               {playlists.length === 0 ? (
-                <Card className="p-6 text-sm text-white/55">{t('library.noPlaylistsFound')}</Card>
+                <p className="px-2 py-2 text-[15px] text-quiet">{t('library.noPlaylistsFound')}</p>
               ) : visiblePlaylists.length === 0 ? (
-                <Card className="p-6 text-sm text-white/55">{t('library.noPlaylistsMatch')}</Card>
+                <p className="px-2 py-2 text-[15px] text-quiet">{t('library.noPlaylistsMatch')}</p>
               ) : (
-                <StaggeredList className="flex flex-col gap-2">
+                <StaggeredList className="rows [--row-text:60px]">
                   <AnimatePresence initial={false}>
                     {visiblePlaylists.map((p) => (
                       <motion.div
@@ -437,21 +417,21 @@ export function LibraryPage() {
                           scale: { duration: 0.2, ease: [0.22, 1, 0.36, 1] },
                         }}
                       >
-                        <Card hover className="flex items-center gap-3 p-3">
-                          <div className="h-10 w-10 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
-                            <ListOrdered className="h-5 w-5 text-white/65" />
+                        <div className="flex min-h-[60px] items-center gap-3 py-2 pl-2 pr-1 transition-colors hover:bg-[var(--hover)]">
+                          <div className="plate flex h-10 w-10 shrink-0 items-center justify-center rounded-cover">
+                            <ListOrdered className="h-5 w-5" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="text-sm font-medium truncate">{p.playlistName}</div>
-                            <div className="text-xs text-white/55 truncate">
+                            <div className="truncate text-base leading-[21px]">{p.playlistName}</div>
+                            <div className="truncate text-[13px] text-quiet">
                               {t('library.entryCount', { count: p.trackCount })} · {p.fileName}
                             </div>
                           </div>
-                          <Button onClick={() => removePlaylist(p)} disabled={Boolean(busy[p.id])}>
-                            <Trash2 className="h-4 w-4" />
+                          <Button variant="ghost" onClick={() => removePlaylist(p)} disabled={Boolean(busy[p.id])} className="!font-medium !text-quiet hover:!text-white">
+                            <Trash2 />
                             {busy[p.id] ? t('library.deleting') : t('library.delete')}
                           </Button>
-                        </Card>
+                        </div>
                       </motion.div>
                     ))}
                   </AnimatePresence>
@@ -460,15 +440,15 @@ export function LibraryPage() {
             </section>
 
             <section>
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-white/50 mb-3 flex items-center gap-2">
-                <Music2 className="h-4 w-4" /> {t('library.singles')}
+              <h2 className="section-title">
+                <Music2 /> {t('library.singles')}
               </h2>
               {singles.length === 0 ? (
-                <Card className="p-6 text-sm text-white/55">{t('library.noSinglesFound')}</Card>
+                <p className="px-2 py-2 text-[15px] text-quiet">{t('library.noSinglesFound')}</p>
               ) : visibleSingles.length === 0 ? (
-                <Card className="p-6 text-sm text-white/55">{t('library.noSinglesMatch')}</Card>
+                <p className="px-2 py-2 text-[15px] text-quiet">{t('library.noSinglesMatch')}</p>
               ) : (
-                <StaggeredList className="flex flex-col gap-2">
+                <StaggeredList className="rows [--row-text:60px]">
                   <AnimatePresence initial={false}>
                     {visibleSingles.map((s) => (
                       <motion.div
@@ -483,18 +463,18 @@ export function LibraryPage() {
                           scale: { duration: 0.2, ease: [0.22, 1, 0.36, 1] },
                         }}
                       >
-                      <Card hover className="flex items-center gap-3 p-3">
-                        <div className="h-10 w-10 rounded-lg bg-white/5 flex items-center justify-center">
-                          <Music2 className="h-5 w-5 text-white/65" />
+                      <div className="flex min-h-[60px] items-center gap-3 py-2 pl-2 pr-1 transition-colors hover:bg-[var(--hover)]">
+                        <div className="plate flex h-10 w-10 shrink-0 items-center justify-center rounded-cover">
+                          <Music2 className="h-5 w-5" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="text-sm font-medium truncate">{s.songName}</div>
-                          <div className="text-xs text-white/55 truncate">
+                          <div className="truncate text-base leading-[21px]">{s.songName}</div>
+                          <div className="truncate text-[13px] text-quiet">
                             <ResolvedMediaLink
                               kind="artist"
                               artistId={s.artistId}
                               artistName={s.artistName}
-                              className="hover:text-accent transition-colors"
+                              className="hover:text-white transition-colors"
                             >
                               {s.artistName}
                             </ResolvedMediaLink>
@@ -502,19 +482,19 @@ export function LibraryPage() {
                         </div>
                         <div
                           className={cx(
-                            'inline-flex min-h-11 shrink-0 select-none items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-4 py-2.5 text-sm font-medium',
-                            s.hasLyrics ? 'text-emerald-300' : 'text-white/45',
+                            'inline-flex shrink-0 select-none items-center gap-1.5 px-2 text-[13px] font-medium',
+                            s.hasLyrics ? 'text-white' : 'text-quiet',
                           )}
                           title={s.hasLyrics ? t('library.lyricsSidecarAvailable') : t('library.noLyricsSidecar')}
                         >
                           <FileText className="h-3.5 w-3.5" />
                           {s.hasLyrics ? t('library.lyrics') : t('library.noLyrics')}
                         </div>
-                        <Button onClick={() => removeSong(s)} disabled={Boolean(busy[s.id])}>
-                          <Trash2 className="h-4 w-4" />
+                        <Button variant="ghost" onClick={() => removeSong(s)} disabled={Boolean(busy[s.id])} className="!font-medium !text-quiet hover:!text-white">
+                          <Trash2 />
                           {busy[s.id] ? t('library.deleting') : t('library.delete')}
                         </Button>
-                      </Card>
+                      </div>
                       </motion.div>
                     ))}
                   </AnimatePresence>
@@ -545,7 +525,7 @@ export function LibraryPage() {
               <h3 className="text-lg font-semibold leading-tight">
                 {t('library.deleteAlbumTitle', { name: deleteTarget.item.albumName })}
               </h3>
-              <p className="text-sm text-white/60">
+              <p className="text-sm text-quiet">
                 {t('library.deleteAlbumBody', { artist: deleteTarget.item.artistName })}
               </p>
             </>
@@ -554,7 +534,7 @@ export function LibraryPage() {
               <h3 className="text-lg font-semibold leading-tight">
                 {t('library.deleteSongTitle', { name: deleteTarget.item.songName })}
               </h3>
-              <p className="text-sm text-white/60">
+              <p className="text-sm text-quiet">
                 {t('library.deleteSongBody')}
               </p>
             </>
@@ -563,7 +543,7 @@ export function LibraryPage() {
               <h3 className="text-lg font-semibold leading-tight">
                 {t('library.deletePlaylistTitle', { name: deleteTarget.item.playlistName })}
               </h3>
-              <p className="text-sm text-white/60">
+              <p className="text-sm text-quiet">
                 {t('library.deletePlaylistBody', { name: deleteTarget.item.playlistName })}
               </p>
             </>
@@ -574,7 +554,7 @@ export function LibraryPage() {
             <Button
               onClick={confirmDelete}
               disabled={!deleteTarget}
-              className="border-rose-400/35 bg-rose-500/[0.18] text-rose-300 hover:border-rose-400/50 hover:bg-rose-500/[0.28] hover:text-rose-200"
+              variant="ghost" className="!text-rose-500"
             >
               {t('library.delete')}
             </Button>

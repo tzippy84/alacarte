@@ -367,6 +367,21 @@ export function formatReleaseDate(date) {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
 }
 
+// Apple lists an album's or playlist's music videos among its tracks and
+// counts them in trackCount; alacarte only downloads the songs.
+function audioTracks(raw) {
+  return (raw.relationships?.tracks?.data || []).filter((t) => t?.type !== 'music-videos')
+}
+
+// The relationship can be cut short on long releases, so subtract the videos
+// it lists rather than counting the songs.
+function audioTrackCount(raw) {
+  const total = raw.attributes?.trackCount
+  if (typeof total !== 'number') return total
+  const videos = (raw.relationships?.tracks?.data || []).length - audioTracks(raw).length
+  return total - videos
+}
+
 export function normalizeAlbum(raw) {
   if (!raw) return null
   const a = raw.attributes || {}
@@ -374,7 +389,7 @@ export function normalizeAlbum(raw) {
     id: x.id,
     name: x.attributes?.name || a.artistName,
   }))
-  const tracks = (raw.relationships?.tracks?.data || []).map((t) => {
+  const tracks = audioTracks(raw).map((t) => {
     const ta = t.attributes || {}
     return {
       id: t.id,
@@ -405,7 +420,7 @@ export function normalizeAlbum(raw) {
     releaseDate: a.releaseDate,
     isPrerelease: Boolean(a.isPrerelease),
     year: a.releaseDate ? String(a.releaseDate).slice(0, 4) : null,
-    trackCount: a.trackCount,
+    trackCount: audioTrackCount(raw),
     isCompilation: a.isCompilation,
     isSingle: a.isSingle,
     recordLabel: a.recordLabel,
@@ -431,7 +446,7 @@ export function normalizePlaylist(raw) {
   if (!raw) return null
   const a = raw.attributes || {}
   const curator = (raw.relationships?.curators?.data || [])[0]
-  const tracks = (raw.relationships?.tracks?.data || []).map((t) => {
+  const tracks = audioTracks(raw).map((t) => {
     const ta = t.attributes || {}
     const artistsRel = t.relationships?.artists?.data || []
     return {
@@ -460,7 +475,7 @@ export function normalizePlaylist(raw) {
     description: a.description?.standard || '',
     curatorName: curator?.attributes?.name || a.curatorName || 'Apple Music',
     curatorId: curator?.id || null,
-    trackCount: a.trackCount,
+    trackCount: audioTrackCount(raw),
     url: a.url,
     artworkTemplate: a.artwork?.url || null,
     artworkColor: a.artwork?.bgColor || null,

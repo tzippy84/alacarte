@@ -1,12 +1,20 @@
 import { Link } from 'react-router-dom'
 import type { ReactNode } from 'react'
-import { X, CheckCircle2, AlertCircle, Loader2, Clock, CircleSlash, ArrowUpToLine, CalendarClock } from 'lucide-react'
+import {
+  Xmark as X,
+  CheckCircle as CheckCircle2,
+  WarningCircle as AlertCircle,
+  RefreshDouble as Loader2,
+  Clock,
+  Prohibition as CircleSlash,
+  AlignTopBox as ArrowUpToLine,
+  Calendar as CalendarClock,
+} from 'iconoir-react'
 import { useTranslation } from 'react-i18next'
 
 import { api, type Job } from '../api/client'
 import { stripYear, formatPercent } from '../lib/format'
 import { ProgressBar } from './ProgressBar'
-import { Card } from './Card'
 import { ResolvedMediaLink } from './ResolvedMediaLink'
 
 type Props = {
@@ -31,14 +39,13 @@ export function QueueItem({ job, onMoveTop, dragHandle }: Props) {
         : job.status === 'running'
           ? Loader2
           : Clock
+  // A download under way is "you, now" (the accent); a failure the error color; the rest quiet.
   const statusColor =
-    job.status === 'done'
-      ? 'text-emerald-400'
-      : cancelled || unavailable
-        ? 'text-white/45'
-        : job.status === 'failed'
-        ? 'text-rose-400'
-        : 'text-accent'
+    job.status === 'failed' && !cancelled && !unavailable
+      ? 'text-rose-500'
+      : job.status === 'running'
+        ? 'text-accent'
+        : 'text-quiet'
   const spin = job.status === 'running' ? 'animate-spin' : ''
 
   const onCancel = async () => {
@@ -55,9 +62,9 @@ export function QueueItem({ job, onMoveTop, dragHandle }: Props) {
       : null
 
   return (
-    <Card hover className="flex items-center gap-3 p-3 md:gap-4">
+    <div className="flex min-h-[68px] items-center gap-3 py-2.5 pl-2 pr-1 transition-colors hover:bg-[var(--hover)]">
       {dragHandle}
-      <div className="shrink-0 h-14 w-14 md:h-16 md:w-16 overflow-hidden rounded-xl bg-black/50">
+      <div className="plate h-12 w-12 shrink-0 overflow-hidden rounded-cover">
         {job.artworkUrl ? (
           <Link to={isPlaylist ? playlistHref || '/search' : `/album/${job.albumId}`} className="block h-full w-full">
             <img src={job.artworkUrl} alt="" className="h-full w-full object-cover" />
@@ -66,10 +73,10 @@ export function QueueItem({ job, onMoveTop, dragHandle }: Props) {
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 min-w-0">
-          <StatusIcon className={`h-4 w-4 shrink-0 ${statusColor} ${spin}`} strokeWidth={2} />
-          <div className="truncate text-sm font-medium">
+          <StatusIcon className={`h-4 w-4 shrink-0 ${statusColor} ${spin}`} />
+          <div className="truncate text-base leading-[21px]">
             {isPlaylist && playlistHref ? (
-              <Link to={playlistHref} className="hover:text-accent transition-colors">
+              <Link to={playlistHref} className="hover:text-white transition-colors">
                 {stripYear(job.albumTitle)}
               </Link>
             ) : (
@@ -79,7 +86,7 @@ export function QueueItem({ job, onMoveTop, dragHandle }: Props) {
                 artistName={job.artist}
                 albumId={job.albumId}
                 albumName={job.albumTitle}
-                className="hover:text-accent transition-colors"
+                className="hover:text-white transition-colors"
               >
                 {stripYear(job.albumTitle)}
               </ResolvedMediaLink>
@@ -95,12 +102,12 @@ export function QueueItem({ job, onMoveTop, dragHandle }: Props) {
             ) : null}
           </div>
         </div>
-        <div className="truncate text-xs text-white/55 mt-0.5">
+        <div className="truncate text-[13px] text-quiet">
           <ResolvedMediaLink
             kind="artist"
             artistId={job.artistId}
             artistName={job.artist}
-            className="hover:text-accent transition-colors"
+            className="hover:text-white transition-colors"
           >
             {job.artist}
           </ResolvedMediaLink>
@@ -116,7 +123,7 @@ export function QueueItem({ job, onMoveTop, dragHandle }: Props) {
           <div className="mt-2"><ProgressBar value={job.progress} label={formatPercent(job.progress)} /></div>
         )}
         {job.status === 'failed' && !cancelled && !unavailable && (job.error || job.message) && (
-          <div className="mt-1 text-xs text-rose-400 truncate">{job.error || job.message}</div>
+          <div className="mt-0.5 truncate text-[13px] text-rose-500">{job.error || job.message}</div>
         )}
       </div>
       {onMoveTop && (
@@ -125,9 +132,9 @@ export function QueueItem({ job, onMoveTop, dragHandle }: Props) {
           onClick={onMoveTop}
           aria-label={t('queueItem.moveToTop')}
           title={t('queueItem.moveToTop')}
-          className="shrink-0 h-10 w-10 rounded-full flex items-center justify-center bg-white/[0.06] hover:bg-white/[0.12] hover:text-accent transition-colors"
+          className="glyph quiet h-10 w-10"
         >
-          <ArrowUpToLine className="h-4 w-4" />
+          <ArrowUpToLine className="h-5 w-5" />
         </button>
       )}
       {(job.status === 'queued' || job.status === 'running') && (
@@ -135,11 +142,11 @@ export function QueueItem({ job, onMoveTop, dragHandle }: Props) {
           type="button"
           onClick={onCancel}
           aria-label={t('queueItem.cancel')}
-          className="shrink-0 h-10 w-10 rounded-full flex items-center justify-center bg-white/[0.06] hover:bg-rose-500/20 hover:text-rose-400 transition-colors"
+          className="glyph quiet h-10 w-10"
         >
-          <X className="h-4 w-4" />
+          <X className="h-5 w-5" />
         </button>
       )}
-    </Card>
+    </div>
   )
 }

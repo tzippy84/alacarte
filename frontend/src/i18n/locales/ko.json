@@ -50,6 +50,7 @@
     "cardAutoDownloads": "자동 다운로드",
     "cardAccount": "계정",
     "storefront": "스토어프론트",
+    "autoStorefront": "스토어프론트 자동 감지",
     "contentRating": "콘텐츠 등급",
     "preferExplicit": "선정성 버전 선호",
     "preferClean": "클린 버전 선호",
@@ -234,7 +235,24 @@
     "timeSeconds": "{{count}}초",
     "appleLimitLabel": "Apple Music 요청 제한",
     "cardIntegrations": "연동",
-    "appleLimitIntegrationLabel": "octo-fiesta 조회도 제한"
+    "appleLimitIntegrationLabel": "octo-fiesta 조회도 제한",
+    "appearance": "모양",
+    "season": "계절",
+    "seasonFollow": "달력 따르기",
+    "seasonNext": "지금은 {{season}} · {{date}}부터 {{next}}",
+    "theme": "테마",
+    "seasons": {
+      "spring": "봄",
+      "summer": "여름",
+      "autumn": "가을",
+      "winter": "겨울"
+    },
+    "appearances": {
+      "system": "시스템",
+      "day": "낮",
+      "night": "밤",
+      "midnight": "한밤"
+    }
   },
   "album": {
     "loadError": "불러오지 못했습니다",
@@ -598,7 +616,6 @@
     "openActivity": "활동 열기",
     "dismiss": "닫기",
     "title": "팔로잉",
-    "subtitle": "아티스트를 팔로우하면 새 발매작을 지켜보고, 플레이리스트를 팔로우하면 추가하는 트랙을 자동으로 다운로드합니다.",
     "sectionAriaLabel": "팔로잉 섹션",
     "tabArtists": "아티스트",
     "tabPlaylists": "플레이리스트",
@@ -705,7 +722,6 @@
   },
   "imports": {
     "title": "가져오기",
-    "subtitle": "Apple Music 링크를 한 줄에 하나씩 담은 파일을 추가하세요. alacarte는 사본을 저장하므로 다시 동기화는 저장된 링크를 다시 실행합니다. 이후의 수정은 다시 추가해야 합니다.",
     "add": "파일 추가",
     "adding": "추가 중…",
     "resync": "다시 동기화",

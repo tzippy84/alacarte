@@ -24,6 +24,7 @@ const SETTINGS_FILE = path.join(CONFIG_DIR, 'settings.json')
 
 const DEFAULTS = {
   storefront: 'us',
+  autoStorefront: true,
   language: 'en-US',
   quality: 'flac',
   convertToFlac: true,
@@ -49,6 +50,8 @@ const DEFAULTS = {
   versionOptionsEnabled: false,
   versionOptions: ['atmos', 'lossless', 'aac'],
   uiLanguage: 'system',
+  season: 'follow',
+  appearance: 'system',
   acceptedLanguages: [],
   namingLanguageMode: DEFAULT_NAMING_LANGUAGE_MODE,
   // Apple request pacing (see appleGateway.mjs); null = use the built-in default.
@@ -75,6 +78,8 @@ function normalizeAcceptedLanguages(list) {
 }
 
 const QUALITY_VALUES = new Set(['flac', 'alac', 'atmos', 'aac'])
+export const SEASON_VALUES = new Set(['follow', 'spring', 'summer', 'autumn', 'winter'])
+export const APPEARANCE_VALUES = new Set(['system', 'day', 'night', 'midnight'])
 
 // Number inside [min, max], or null when absent/invalid (= use the default).
 export function clampSetting(value, min, max) {
@@ -228,7 +233,7 @@ export function writeSettings(patch) {
 // Settings that never had any effect (amdp's folder and file names are fixed
 // in amdpRunner, and ALAC is not kept next to the FLAC); dropped from older
 // settings files on the next save.
-const RETIRED_KEYS = ['albumFolderFormat', 'artistFolderFormat', 'songFileFormat', 'keepAlac']
+const RETIRED_KEYS = ['albumFolderFormat', 'artistFolderFormat', 'songFileFormat', 'keepAlac', 'maxFileNameBytes']
 
 function normalizeSettings(input) {
   const parsed = { ...input }
@@ -278,6 +283,8 @@ function normalizeSettings(input) {
     uiLanguage: UI_LANGUAGE_VALUES.has(parsed?.uiLanguage)
       ? parsed.uiLanguage
       : DEFAULTS.uiLanguage,
+    season: SEASON_VALUES.has(parsed?.season) ? parsed.season : DEFAULTS.season,
+    appearance: APPEARANCE_VALUES.has(parsed?.appearance) ? parsed.appearance : DEFAULTS.appearance,
     acceptedLanguages: normalizeAcceptedLanguages(parsed?.acceptedLanguages),
     namingLanguageMode: NAMING_LANGUAGE_MODE_VALUES.has(parsed?.namingLanguageMode)
       ? parsed.namingLanguageMode
@@ -288,6 +295,9 @@ function normalizeSettings(input) {
     appleGatewayPaceIntegration: toBool(parsed?.appleGatewayPaceIntegration, DEFAULTS.appleGatewayPaceIntegration),
     appleGatewayAdaptive: toBool(parsed?.appleGatewayAdaptive, DEFAULTS.appleGatewayAdaptive),
     appleGatewayCooldownMinutes: clampSetting(parsed?.appleGatewayCooldownMinutes, ...APPLE_GATEWAY_LIMITS.appleGatewayCooldownMinutes),
+    // Fresh installs get DEFAULTS written to disk; a settings file from before
+    // auto-detect existed has no key and keeps the storefront it was given.
+    autoStorefront: toBool(parsed?.autoStorefront, false),
   }
 }
 
@@ -302,6 +312,7 @@ export async function readPublicSettings() {
   const s = await readSettings()
   return {
     storefront: s.storefront,
+    autoStorefront: Boolean(s.autoStorefront),
     language: s.language,
     quality: s.quality,
     convertToFlac: s.quality === 'flac',
@@ -331,6 +342,8 @@ export async function readPublicSettings() {
       ? s.versionOptions.filter((g) => VERSION_GROUP_VALUES.has(g))
       : [],
     uiLanguage: s.uiLanguage || 'system',
+    season: s.season || DEFAULTS.season,
+    appearance: s.appearance || DEFAULTS.appearance,
     acceptedLanguages: Array.isArray(s.acceptedLanguages) ? s.acceptedLanguages : [],
     namingLanguageMode: s.namingLanguageMode || DEFAULT_NAMING_LANGUAGE_MODE,
   }

@@ -3,20 +3,19 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   Search as SearchIcon,
-  X,
-  Disc3,
-  UserRound,
-  Music2,
-  ListChecks,
-  ListMusic,
-} from 'lucide-react'
+  Xmark as X,
+  CompactDisc as Disc3,
+  User as UserRound,
+  MusicNote as Music2,
+  TaskList as ListChecks,
+  Playlist as ListMusic,
+} from 'iconoir-react'
 
 import { api, artworkUrl, type Album, type Artist, type Song, type Playlist } from '../api/client'
 import { AlbumCard } from '../components/AlbumCard'
 import { PlaylistCard } from '../components/PlaylistCard'
-import { Card } from '../components/Card'
 import { Badge } from '../components/Badge'
-import { Input } from '../components/Input'
+import { PageTitle } from '../components/PageTitle'
 import { DownloadButton } from '../components/DownloadButton'
 import { ResolvedMediaLink } from '../components/ResolvedMediaLink'
 import { StaggeredList, StaggeredItem } from '../components/StaggeredList'
@@ -57,7 +56,18 @@ export function SearchPage() {
   const cats = useMemo(() => parseCats(params.get('cats')), [params])
   const catSet = useMemo(() => new Set(cats), [cats])
 
-  const [q, setQ] = useState(urlQ)
+  // The query is the address's: the top bar's search pill writes it, and on a phone the field here does.
+  const q = urlQ
+  const setQ = (value: string) =>
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        if (value) next.set('q', value)
+        else next.delete('q')
+        return next
+      },
+      { replace: true },
+    )
   const [results, setResults] = useState<Results>(
     () => resultCache.get(urlQ.trim()) ?? EMPTY,
   )
@@ -65,30 +75,8 @@ export function SearchPage() {
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    if (urlQ !== q && !urlQ.startsWith(q)) {
-      setQ(urlQ)
-    }
-    setResults(resultCache.get(urlQ.trim()) ?? EMPTY)
-  }, [urlQ])
-
   const trimmed = useMemo(() => q.trim(), [q])
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setParams(
-        (prev) => {
-          const next = new URLSearchParams(prev)
-          if (q) next.set('q', q)
-          else next.delete('q')
-          return next
-        },
-        { replace: true },
-      )
-    }, 250)
-    return () => clearTimeout(timer)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q])
 
   useEffect(() => {
     if (!trimmed) {
@@ -131,7 +119,7 @@ export function SearchPage() {
   }, [trimmed, navigate])
 
   useEffect(() => {
-    inputRef.current?.focus()
+    if (!matchMedia('(min-width: 768px)').matches) inputRef.current?.focus()
   }, [])
 
   const allCatsSelected = cats.length === ALL_CATS.length
@@ -171,16 +159,17 @@ export function SearchPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl pt-4 md:pt-6 space-y-6">
-      <div className="relative">
-        <SearchIcon className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
-        <Input
+    <div className="flex w-full flex-col gap-[26px]">
+      <PageTitle>{t('nav.search')}</PageTitle>
+      <label className="field flex items-center gap-2 !px-3.5 text-quiet md:hidden">
+        <SearchIcon className="h-[19px] w-[19px] shrink-0" />
+        <input
           ref={inputRef}
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={t('search.searchPlaceholder')}
-          className="pl-12 pr-12 text-base"
+          className="min-w-0 flex-1 bg-transparent text-base text-white outline-none placeholder:text-quiet [&::-webkit-search-cancel-button]:hidden"
           autoCapitalize="off"
           autoCorrect="off"
           spellCheck={false}
@@ -189,28 +178,26 @@ export function SearchPage() {
           <button
             type="button"
             onClick={() => setQ('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10"
+            className="glyph quiet -mr-2 h-9 w-9"
             aria-label={t('search.clearAriaLabel')}
           >
-            <X className="h-4 w-4" />
+            <X className="h-[18px] w-[18px]" />
           </button>
         )}
-      </div>
+      </label>
 
       {error && <Badge variant="bad">{error}</Badge>}
 
       {!trimmed && (
-        <Card className="p-8 text-center text-white/55">
-          <SearchIcon className="h-8 w-8 mx-auto mb-2 opacity-40" />
-          <div className="text-sm">
-            {t('search.emptyStateHint')}
-          </div>
-        </Card>
+        <div className="empty-note font-medium text-quiet">
+          <SearchIcon className="mb-3.5 box-content h-7 w-7 rounded-full bg-[var(--veil)] p-[18px]" />
+          {t('search.emptyStateHint')}
+        </div>
       )}
 
       {trimmed && (
         <>
-          <div className="flex flex-wrap gap-2" role="group" aria-label={t('search.filterResultsAriaLabel')}>
+          <div className="flex flex-wrap gap-1" role="group" aria-label={t('search.filterResultsAriaLabel')}>
             <CatPill label={t('search.showAll')} icon={ListChecks} active={allCatsSelected} onClick={selectAllCats} />
             <CatPill label={t('search.albums')} icon={Disc3} active={!allCatsSelected && catSet.has('albums')} onClick={() => toggleCat('albums')} count={results.albums.length} />
             <CatPill label={t('search.artists')} icon={UserRound} active={!allCatsSelected && catSet.has('artists')} onClick={() => toggleCat('artists')} count={results.artists.length} />
@@ -220,7 +207,7 @@ export function SearchPage() {
 
           {catSet.has('albums') && (
             <Section title={loading ? t('search.albumsSearching') : t('search.albums')} empty={results.albums.length === 0 && !loading}>
-              <StaggeredList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+              <StaggeredList className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-x-3 gap-y-5 md:grid-cols-[repeat(auto-fill,minmax(170px,1fr))]">
                 {results.albums.map((a) => (
                   <StaggeredItem key={a.id}>
                     <AlbumCard album={a} />
@@ -235,8 +222,8 @@ export function SearchPage() {
               <StaggeredList className="flex flex-wrap gap-2">
                 {results.artists.map((a) => (
                   <StaggeredItem key={a.id}>
-                    <Link to={`/artist/${a.id}`}>
-                      <Card hover className="px-4 py-2 text-sm">{a.name}</Card>
+                    <Link to={`/artist/${a.id}`} className="chip on hover:bg-[color-mix(in_srgb,var(--ink)_4%,var(--surface))]">
+                      {a.name}
                     </Link>
                   </StaggeredItem>
                 ))}
@@ -246,7 +233,7 @@ export function SearchPage() {
 
           {catSet.has('songs') && (
             <Section title={t('search.songs')} empty={results.songs.length === 0}>
-              <StaggeredList className="flex flex-col gap-1">
+              <StaggeredList className="rows [--row-text:60px]">
                 {results.songs
                   .slice(0, cats.length === 1 ? 50 : 10)
                   .map((s) => (
@@ -260,7 +247,7 @@ export function SearchPage() {
 
           {catSet.has('playlists') && (
             <Section title={loading ? t('search.playlistsSearching') : t('search.playlists')} empty={results.playlists.length === 0 && !loading}>
-              <StaggeredList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+              <StaggeredList className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-x-3 gap-y-5 md:grid-cols-[repeat(auto-fill,minmax(170px,1fr))]">
                 {results.playlists.map((p) => (
                   <StaggeredItem key={p.id}>
                     <PlaylistCard playlist={p} />
@@ -293,15 +280,12 @@ function CatPill({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={cx(
-        'inline-flex select-none items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-[0.8125rem] font-medium text-white/70 transition-[background,border-color,color,transform] duration-[160ms] ease-smooth hover:bg-white/[0.08] hover:text-white active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(var(--accent),0.30)]',
-        active && '!border-accent/50 !bg-accent/22 !text-white',
-      )}
+      className={cx('chip select-none', active && 'on')}
     >
-      <Icon className="h-3.5 w-3.5" />
+      <Icon className="h-4 w-4" />
       {label}
       {typeof count === 'number' && count > 0 && (
-        <span className="text-white/50 text-[11px] font-normal">{count}</span>
+        <span className="text-[12px] font-normal text-quiet tabular-nums">{count}</span>
       )}
     </button>
   )
@@ -311,7 +295,7 @@ function Section({ title, children, empty }: { title: string; empty?: boolean; c
   if (empty) return null
   return (
     <section>
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-white/50 mb-3">{title}</h2>
+      <h2 className="section-title">{title}</h2>
       {children}
     </section>
   )
@@ -346,8 +330,8 @@ function SongRow({ song }: { song: Song }) {
     isSongInLibrary(song) || (albumLookup ? isAlbumInLibrary(albumLookup) : false)
 
   return (
-    <Card hover className="group relative flex items-center gap-3 p-2">
-      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-black/50">
+    <div className="group relative flex min-h-[60px] items-center gap-3 py-2 pl-2 pr-1 transition-colors hover:bg-[var(--hover)]">
+      <div className="plate relative h-10 w-10 shrink-0 overflow-hidden rounded-cover">
         {song.albumId ? (
           <Link to={`/album/${song.albumId}`}>
             {song.artworkTemplate && (
@@ -361,19 +345,19 @@ function SongRow({ song }: { song: Song }) {
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium">
+        <div className="truncate text-base leading-[21px]">
           {song.albumId ? (
-            <Link to={`/album/${song.albumId}`} className="hover:text-accent transition-colors">{song.name}</Link>
+            <Link to={`/album/${song.albumId}`} className="hover:text-white transition-colors">{song.name}</Link>
           ) : (
             song.name
           )}
         </div>
-        <div className="truncate text-xs text-white/55">
+        <div className="truncate text-[13px] text-quiet">
           <ResolvedMediaLink
             kind="artist"
             artistId={song.artistId}
             artistName={song.artistName}
-            className="hover:text-accent transition-colors"
+            className="hover:text-white transition-colors"
           >
             {song.artistName}
           </ResolvedMediaLink>
@@ -386,7 +370,7 @@ function SongRow({ song }: { song: Song }) {
                 artistId={song.artistId}
                 albumId={song.albumId}
                 albumName={song.albumName}
-                className="hover:text-accent transition-colors"
+                className="hover:text-white transition-colors"
               >
                 {stripYear(song.albumName)}
               </ResolvedMediaLink>
@@ -430,6 +414,6 @@ function SongRow({ song }: { song: Song }) {
           {qualityPrompt}
         </div>
       )}
-    </Card>
+    </div>
   )
 }
